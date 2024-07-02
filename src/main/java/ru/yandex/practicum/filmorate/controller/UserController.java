@@ -23,23 +23,22 @@ public class UserController {
 
     @PostMapping
     public User create(@Valid @RequestBody User user) {
-        log.info("==>POST /users {}", user);
+        log.info("==> POST /users {}", user);
         user.setId(getNextId());
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
+        validateUserName(user);
         users.put(user.getId(), user);
-        log.info("POST /user <== {}", user);
+        log.info("POST /users <== {}", user);
         return user;
     }
 
     @PutMapping
     public User update(@Valid @RequestBody User user) {
-        log.info("==>PUT /users {}", user);
-        user.setId(getNextId());
-        if (users.get(user.getId()) == null) {
-            throw new NotFoundException("Юзер с id:" + user.getId() + "не найден");
+        log.info("==> PUT /users {}", user);
+
+        if (!users.containsKey(user.getId())) {
+            throw new NotFoundException("User with id: " + user.getId() + " not found");
         }
+        validateUserName(user);
         users.put(user.getId(), user);
         log.info("PUT /users <== {}", user);
         return user;
@@ -52,5 +51,11 @@ public class UserController {
                 .max()
                 .orElse(0);
         return ++currentMaxId;
+    }
+
+    private void validateUserName(User user) {
+        if (user.getName() == null || user.getName().isBlank()) {
+            user.setName(user.getLogin());
+        }
     }
 }
