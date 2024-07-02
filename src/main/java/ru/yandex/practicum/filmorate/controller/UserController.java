@@ -36,6 +36,7 @@ public class UserController {
     @PutMapping
     public User update(@Valid @RequestBody User user) {
         log.info("==>PUT /users {}", user);
+        user.setId(getNextId());
         if (users.get(user.getId()) == null) {
             throw new NotFoundException("Юзер с id:" + user.getId() + "не найден");
         }
