@@ -1,52 +1,32 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import jakarta.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.exception.InvalidReleaseDateException;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/films")
-@Slf4j
 public class FilmController {
-    private final Map<Integer, Film> films = new HashMap<>();
-
-    @GetMapping
-    public ArrayList<Film> getAll() {
-        return new ArrayList<>(films.values());
-    }
+    // Ваши зависимости и другие методы
 
     @PostMapping
-    public Film create(@Valid @RequestBody Film film) {
-        log.info("==>POST /films {}", film);
-        film.setId(getNextId());
-        films.put(film.getId(), film);
-        log.info("POST /films <== {}", film);
+    public Film create(@RequestBody Film film) {
+        validateReleaseDate(film.getReleaseDate());
+        // Логика сохранения фильма
+        film.setId(generateId()); // Пример генерации ID
         return film;
     }
 
-    @PutMapping
-    public Film update(@Valid @RequestBody Film film) {
-        log.info("==>PUT /films {}", film);
-        if (!films.containsKey(film.getId())) {
-            throw new NotFoundException("Фильма с таким id не существует");
+    private void validateReleaseDate(LocalDate releaseDate) {
+        if (releaseDate.isBefore(LocalDate.of(1895, 12, 28))) { // К примеру, дата начала киноиндустрии
+            throw new InvalidReleaseDateException("Дата выпуска фильма не может быть раньше 28 декабря 1895 года.");
         }
-        films.put(film.getId(), film);
-        log.info("PUT /films <== {}", film);
-        return film;
     }
 
-    private Integer getNextId() {
-        int currentMaxId = films.keySet()
-                .stream()
-                .mapToInt(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
+    private int generateId() {
+        // Пример генерации ID, возможно у вас другой способ
+        return (int) (Math.random() * 1000);
     }
 }

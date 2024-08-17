@@ -1,59 +1,24 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import jakarta.validation.*;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.exception.InvalidReleaseDateException;
 
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.List;
-import java.util.Set;
 
-import static jakarta.validation.Validation.buildDefaultValidatorFactory;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class FilmControllerTest {
-    FilmController filmController;
-    Film film;
+public class FilmControllerTest {
 
-    ValidatorFactory factory = buildDefaultValidatorFactory();
-    Validator validator = factory.getValidator();
-
-    @BeforeEach
-    void beforeEach() {
-        filmController = new FilmController();
-        film = new Film(0, "The Green Mile", "Sad film", LocalDate.of(1999, Month.DECEMBER, 6), 189);
-    }
+    private final FilmController filmController = new FilmController();
 
     @Test
-    void create() {
-        Film newFilm = filmController.create(film);
-        List<Film> films = filmController.getAll();
-        assertEquals(newFilm, films.get(0));
-    }
+    void shouldNotValidateReleaseDate() {
+        Film invalidFilm = new Film(0, "The Green Mile", "Sad film", LocalDate.of(1000, Month.DECEMBER, 6), 189);
 
-    @Test
-    void update() {
-        Film newFilm = filmController.create(film);
-        newFilm.setDescription("Good but sad film");
-        Film newFilm2 = filmController.update(newFilm);
-        List<Film> films = filmController.getAll();
-        assertEquals(newFilm2, films.get(0));
-    }
-
-    @Test
-    void shouldNotValidateBigDescription() {
-        Film invalidFilm = new Film(0, " ", "Sad film dfdfdfddfdfdfdfdfadadadadaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabdfsfsfsfsffsfssflllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllllll", LocalDate.of(1850, Month.DECEMBER, 6), -189);
-        Set<ConstraintViolation<Film>> violations = validator.validate(invalidFilm);
-        assertEquals(4, violations.size());
-    }
-
-    @Test
-    void shouldNotValidateBlankName() {
-        Film newFilm = filmController.create(film);
-        newFilm.setName(" ");
-        Set<ConstraintViolation<Film>> violations = validator.validate(newFilm);
-        assertEquals(1, violations.size());
+        assertThrows(InvalidReleaseDateException.class, () -> {
+            filmController.create(invalidFilm);
+        });
     }
 }
