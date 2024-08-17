@@ -6,7 +6,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -24,7 +23,11 @@ class FilmControllerTest {
     @Test
     void shouldNotValidateReleaseDate() {
         Film newFilm = new Film(0, "The Green Mile", "Sad film", LocalDate.of(1000, Month.DECEMBER, 6), 189);
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> filmController.create(newFilm));
-        assertEquals("Дата выпуска должна быть после 28 декабря 1895 года", exception.getMessage());
+
+        // Ensure that the exception thrown is IllegalArgumentException
+        IllegalArgumentException thrownException = assertThrows(IllegalArgumentException.class, () -> filmController.create(newFilm));
+
+        // Verify the exception message is as expected
+        assertEquals("Дата выпуска должна быть после 28 декабря 1895 года", thrownException.getMessage());
     }
 }

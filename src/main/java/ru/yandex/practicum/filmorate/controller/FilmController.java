@@ -36,7 +36,7 @@ public class FilmController {
     public Film create(@Valid @RequestBody Film film) {
         log.info("==>POST /films {}", film);
 
-        validateReleaseDate(film);
+        validateFilm(film);
 
         film.setId(getNextId());
         films.put(film.getId(), film);
@@ -51,14 +51,14 @@ public class FilmController {
             throw new NotFoundException("Фильма с таким id не существует");
         }
 
-        validateReleaseDate(film);
+        validateFilm(film);
 
         films.put(film.getId(), film);
         log.info("PUT /films <== {}", film);
         return film;
     }
 
-    private void validateReleaseDate(Film film) {
+    private void validateFilm(Film film) {
         if (film.getReleaseDate() == null ||
                 film.getReleaseDate().isBefore(LocalDate.of(1895, Month.DECEMBER, 28))) {
             throw new IllegalArgumentException("Дата выпуска должна быть после 28 декабря 1895 года");
