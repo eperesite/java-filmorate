@@ -1,95 +1,102 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.time.LocalDate;
-import java.time.Month;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
-import static jakarta.validation.Validation.buildDefaultValidatorFactory;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@WebMvcTest(UserController.class)
 class UserControllerTest {
-    UserController userController;
-    User user;
 
-    ValidatorFactory factory = buildDefaultValidatorFactory();
-    Validator validator = factory.getValidator();
+    @Autowired
+    private MockMvc mockMvc;
 
-    @BeforeEach
-    void beforeEach() {
-        userController = new UserController();
-        user = new User(0, "petrov@yandex.ru", "Petrov99", "Petr", LocalDate.of(1999, Month.JUNE, 13));
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @MockBean
+    private UserService userService;
+
+    private User user;
+
+    @Test
+    void shouldCreateUser() throws Exception {
+        when(userService.save(any(User.class))).thenReturn(user);
+
+        mockMvc.perform(post("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(user)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(user.getId()))
+                .andExpect(jsonPath("$.name").value(user.getName()));
     }
 
     @Test
-    void create() {
-        User newUser = userController.create(user);
-        List<User> users = userController.getAll();
-        assertEquals(newUser, users.get(0));
+    void shouldUpdateUser() throws Exception {
+        when(userService.update(any(User.class))).thenReturn(user);
+
+        mockMvc.perform(put("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(user)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(user.getId()))
+                .andExpect(jsonPath("$.name").value(user.getName()));
     }
 
     @Test
-    void createWithBlankName() {
-        user.setName(" ");
-        User newUser = userController.create(user);
-        List<User> users = userController.getAll();
-        assertEquals(user.getLogin(), newUser.getName());
+    void shouldReturnAllUsers() throws Exception {
+        when(userService.getAll()).thenReturn(List.of(user));
+
+        mockMvc.perform(get("/users"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(user.getId()))
+                .andExpect(jsonPath("$[0].name").value(user.getName()));
     }
 
     @Test
-    void createWithNullName() {
-        user.setName(null);
-        User newUser = userController.create(user);
-        List<User> users = userController.getAll();
-        assertEquals(user.getLogin(), newUser.getName());
+    void shouldAddFriend() throws Exception {
+        mockMvc.perform(put("/users/1/friends/2"))
+                .andExpect(status().isOk());
+        verify(userService, times(1)).addFriend(1L, 2L);
     }
 
     @Test
-    void update() {
-        User newUser = userController.create(user);
-        newUser.setLogin("SuperPetrov99");
-        newUser.setEmail("newemail@yandex.ru");
-        userController.update(newUser);
-        List<User> users = userController.getAll();
-        assertEquals(newUser, users.get(0));
+    void shouldDeleteFriend() throws Exception {
+        mockMvc.perform(delete("/users/1/friends/2"))
+                .andExpect(status().isOk());
+        verify(userService, times(1)).deleteFriend(1L, 2L);
     }
 
     @Test
-    void updateWithBlankName() {
-        User newUser = userController.create(user);
-        newUser.setName(" ");
-        userController.update(newUser);
-        List<User> users = userController.getAll();
-        assertEquals(newUser.getLogin(), users.get(0).getName());
+    void shouldReturnFriends() throws Exception {
+        when(userService.getFriends(1L)).thenReturn(List.of(user));
+
+        mockMvc.perform(get("/users/1/friends"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(user.getId()))
+                .andExpect(jsonPath("$[0].name").value(user.getName()));
     }
 
     @Test
-    void updateWithNullName() {
-        User newUser = userController.create(user);
-        newUser.setName(null);
-        userController.update(newUser);
-        List<User> users = userController.getAll();
-        assertEquals(newUser.getLogin(), users.get(0).getName());
-    }
+    void shouldReturnCommonFriends() throws Exception {
+        when(userService.getCommonFriends(1L, 2L)).thenReturn(List.of(user));
 
-    @Test
-    void updateNonExistingUser() {
-        User nonExistingUser = new User(999, "nonexistent@yandex.ru", "NonExist", "NonExist", LocalDate.of(1990, Month.JANUARY, 1));
-        assertThrows(NotFoundException.class, () -> userController.update(nonExistingUser));
-    }
-
-    @Test
-    void shouldNotValidate() {
-        User newUser = new User(0, "petrovyandex.ru@", " ", "Petr", LocalDate.of(2100, Month.JUNE, 13));
-        Set<ConstraintViolation<User>> violations = validator.validate(newUser);
-        assertEquals(3, violations.size());
+        mockMvc.perform(get("/users/1/friends/common/2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(user.getId()))
+                .andExpect(jsonPath("$[0].name").value(user.getName()));
     }
 }
