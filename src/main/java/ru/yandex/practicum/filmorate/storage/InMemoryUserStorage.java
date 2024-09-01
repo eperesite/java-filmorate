@@ -22,7 +22,7 @@ public class InMemoryUserStorage implements UserStorage {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
-        users.put((long) user.getId(), user);
+        users.put(user.getId(), user);
         return user;
     }
 
@@ -31,7 +31,7 @@ public class InMemoryUserStorage implements UserStorage {
         if (users.get(user.getId()) == null) {
             throw new NotFoundException("Юзер с id:" + user.getId() + "не найден");
         }
-        users.put((long) user.getId(), user);
+        users.put(user.getId(), user);
         return user;
     }
 
@@ -96,12 +96,12 @@ public class InMemoryUserStorage implements UserStorage {
         }
     }
 
-    private int getNextId() {
+    private Long getNextId() {
         long currentMaxId = users.keySet()
                 .stream()
                 .mapToLong(id -> id)
                 .max()
                 .orElse(0);
-        return (int) ++currentMaxId;
+        return ++currentMaxId;
     }
 }

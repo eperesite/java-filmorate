@@ -22,7 +22,7 @@ public class UserService {
     }
 
     public User update(User user) {
-        userStorage.checkExistUser((long) user.getId());
+        userStorage.checkExistUser(user.getId());
         log.info("==>PUT /users {}", user);
         User updatedUser = userStorage.update(user);
         log.info("PUT /users <== {}", updatedUser);

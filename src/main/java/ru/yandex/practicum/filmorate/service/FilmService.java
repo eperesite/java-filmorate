@@ -29,7 +29,7 @@ public class FilmService {
     }
 
     public Film update(Film film) {
-        filmStorage.checkExistFilm((long) film.getId());
+        filmStorage.checkExistFilm(film.getId());
         log.info("==>PUT /films {}", film);
         Film updatedFilm = filmStorage.update(film);
         log.info("PUT /users <== {}", updatedFilm);

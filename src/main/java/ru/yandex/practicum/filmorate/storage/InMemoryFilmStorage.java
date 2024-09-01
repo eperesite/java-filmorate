@@ -25,7 +25,7 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Film save(Film film) {
         film.setId(getNextId());
-        films.put((long) film.getId(), film);
+        films.put(film.getId(), film);
         return film;
     }
 
@@ -34,7 +34,7 @@ public class InMemoryFilmStorage implements FilmStorage {
         if (!films.containsKey(film.getId())) {
             throw new NotFoundException("Фильма с таким id не существует");
         }
-        films.put((long) film.getId(), film);
+        films.put(film.getId(), film);
         return film;
     }
 
@@ -57,16 +57,16 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public List<Film> getPopular(Integer count) {
-        count = Math.min(count, films.size());
-
+        // Получаем топ-фильмы, отсортированные по убыванию количества лайков
         List<Film> topFilms = filmsLikes.entrySet().stream()
-                .sorted((entry1, entry2) -> Integer.compare(entry2.getValue().size(), entry1.getValue().size())) // сортируем по убыванию
-                .map(Map.Entry::getKey)
-                .map(films::get)
+                .sorted((e1, e2) -> Integer.compare(e2.getValue().size(), e1.getValue().size())) // Сортировка по убыванию
+                .limit(count) // Ограничение по количеству
+                .map(Map.Entry::getKey) // Получаем id фильмов
+                .map(films::get) // Получаем сами фильмы
                 .toList();
-
-        return topFilms.subList(0, count);
+        return topFilms;
     }
+
 
     @Override
     public void checkExistFilm(Long filmId) {
@@ -75,12 +75,12 @@ public class InMemoryFilmStorage implements FilmStorage {
         }
     }
 
-    private int getNextId() {
+    private Long getNextId() {
         long currentMaxId = films.keySet()
                 .stream()
                 .mapToLong(id -> id)
                 .max()
                 .orElse(0);
-        return (int) ++currentMaxId;
+        return ++currentMaxId;
     }
 }
