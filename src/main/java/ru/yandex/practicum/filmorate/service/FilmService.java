@@ -1,13 +1,12 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
-import ru.yandex.practicum.filmorate.validator.FilmValidator;
-import ru.yandex.practicum.filmorate.validator.UserValidator;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,17 +41,12 @@ public class FilmService {
     public void addLike(int filmId, int userId) {
         Film film = filmStorage.getFilm(filmId);
         User user = userStorage.getUser(userId);
-        UserValidator.validate(user);
-        FilmValidator.validate(film);
         film.getLikes().add(userId);
     }
 
     public void removeLike(int filmId, int userId) {
         Film film = filmStorage.getFilm(filmId);
         User user = userStorage.getUser(userId);
-        UserValidator.validate(user);
-        FilmValidator.validate(film);
-
         film.getLikes().remove(userId);
     }
 

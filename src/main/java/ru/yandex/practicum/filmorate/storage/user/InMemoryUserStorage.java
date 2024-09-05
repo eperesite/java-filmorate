@@ -38,7 +38,7 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public User getUser(int id) {
-        User user = users.getOrDefault(id, null);
+        User user = users.get(id);
         if (user == null) {
             throw new ResourceNotFoundException("Пользователь с id " + id + " не найден");
         }

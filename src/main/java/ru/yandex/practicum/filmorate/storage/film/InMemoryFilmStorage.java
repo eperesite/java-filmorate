@@ -43,7 +43,7 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Film getFilm(int id) {
-        Film film = films.getOrDefault(id, null);
+        Film film = films.get(id);
         if (film == null) {
             throw new ResourceNotFoundException("Фильм с id " + id + " не найден");
         }
