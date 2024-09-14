@@ -16,10 +16,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.service.ValidateService;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 @Slf4j
 @RestController
@@ -28,42 +27,27 @@ import java.util.List;
 public class FilmController {
 
     private final FilmService filmService;
+    private final ValidateService validateService;
 
 
     @PostMapping
     public ResponseEntity<Film> addFilm(@Valid @RequestBody Film film) {
-        Film createdFilm = filmService.addFilm(film);
-        return new ResponseEntity<>(createdFilm, HttpStatus.CREATED);
+        log.debug("Запрос на создание фильма");
+        validateService.validateFilm(film);
+        return new ResponseEntity<>(filmService.addFilm(film), HttpStatus.CREATED);
     }
+
 
     @PutMapping
     public ResponseEntity<Film> updateFilm(@Valid @RequestBody Film filmNewInfo) {
-        Film updatedFilm = filmService.updateFilm(filmNewInfo);
-        return ResponseEntity.ok(updatedFilm);
+        log.debug("Запрос на обновление данных о фильме");
+        validateService.validateFilm(filmNewInfo);
+        return new ResponseEntity<>(filmService.updateFilm(filmNewInfo), HttpStatus.OK);
     }
 
     @GetMapping
-    public ResponseEntity<List<Film>> getAllFilms() {
-        List<Film> filmsList = new ArrayList<>(filmService.getFilmsList());
-        return ResponseEntity.ok(filmsList);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Film> getFilm(@PathVariable long id) {
-        Film film = filmService.getFilmById(id);
-        return ResponseEntity.ok().body(film);
-    }
-
-    @PutMapping("/{id}/like/{userId}")
-    public ResponseEntity<Void> addLike(@PathVariable long filmId, @PathVariable long userId) {
-        filmService.addLike(filmId, userId);
-        return ResponseEntity.ok().build();
-    }
-
-    @DeleteMapping("/{id}/like/{userId}")
-    public ResponseEntity<Void> removeLike(@PathVariable long filmId, @PathVariable long userId) {
-        filmService.removeLike(filmId, userId);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Collection<Film>> getFilmsList() {
+        return new ResponseEntity<>(filmService.getFilmsList(), HttpStatus.OK);
     }
 
     @GetMapping("popular")
@@ -71,4 +55,21 @@ public class FilmController {
         return filmService.findPopular(count);
     }
 
+    @GetMapping("{id}")
+    public Film getFilmById(@PathVariable long id) {
+        log.debug("Запрос на получения фильма по айди");
+        return filmService.getFilmById(id);
+    }
+
+    @PutMapping("{id}/like/{user-id}")
+    public void setLike(@PathVariable long id, @PathVariable("user-id") long userId) {
+        log.debug("Запрос на получение  данных о лайках");
+        filmService.addLike(id, userId);
+    }
+
+    @DeleteMapping("{id}/like/{user-id}")
+    public void deleteLink(@PathVariable long id, @PathVariable("user-id") long userId) {
+        filmService.removeLike(id, userId);
+    }
 }
+
