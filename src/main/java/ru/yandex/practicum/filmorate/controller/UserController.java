@@ -43,12 +43,12 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<Collection<User>> getAllUsers() {
-        return new ResponseEntity<>(userService.getUsersList(), HttpStatus.OK);
+        return new ResponseEntity<>(userService.getAllUsers(), HttpStatus.OK);
     }
 
     @GetMapping("{id}")
     public User getUser(@PathVariable long id) {
-        return userService.getUserById(id);
+        return userService.getUser(id);
     }
 
     @PutMapping("{id}/friends/{friend-id}")
@@ -58,7 +58,7 @@ public class UserController {
 
     @DeleteMapping("{id}/friends/{friend-id}")
     public void removeFriend(@PathVariable long id, @PathVariable("friend-id") long friendId) {
-        userService.deleteFriend(id, friendId);
+        userService.removeFriend(id, friendId);
     }
 
     @GetMapping("{id}/friends")
@@ -68,6 +68,6 @@ public class UserController {
 
     @GetMapping("{id}/friends/common/{other-id}")
     public List<User> getCommonFriends(@PathVariable long id, @PathVariable("other-id") long otherId) {
-        return userService.getMutualFriends(id, otherId);
+        return userService.getCommonFriends(id, otherId);
     }
 }

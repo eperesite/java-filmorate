@@ -34,16 +34,16 @@ public class FilmService {
         return filmRepository.updateFilm(film);
     }
 
-    public Film getFilmById(long id) {
+    public Film getFilm(long id) {
         return filmRepository.getFilm(id)
                 .orElseThrow(() -> new NotFoundException("Фильм не найден"));
     }
 
-    public Collection<Film> getFilmsList() {
+    public Collection<Film> getAllFilms() {
         return filmRepository.getFilms();
     }
 
-    public Collection<Film> findPopular(int count) {
+    public Collection<Film> getTopFilms(int count) {
         return filmRepository.findPopular(count);
     }
 

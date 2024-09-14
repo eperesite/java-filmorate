@@ -45,17 +45,17 @@ public class FilmController {
 
     @GetMapping
     public ResponseEntity<Collection<Film>> getAllFilms() {
-        return new ResponseEntity<>(filmService.getFilmsList(), HttpStatus.OK);
+        return new ResponseEntity<>(filmService.getAllFilms(), HttpStatus.OK);
     }
 
     @GetMapping("popular")
     public Collection<Film> getTopFilms(@RequestParam(defaultValue = "10") Integer count) {
-        return filmService.findPopular(count);
+        return filmService.getTopFilms(count);
     }
 
     @GetMapping("{id}")
     public Film getFilm(@PathVariable long id) {
-        return filmService.getFilmById(id);
+        return filmService.getFilm(id);
     }
 
     @PutMapping("{id}/like/{user-id}")

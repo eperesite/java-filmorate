@@ -14,7 +14,7 @@ import java.util.List;
 public class UserService {
     private final UserRepository userRepository;
 
-    public Collection<User> getUsersList() {
+    public Collection<User> getAllUsers() {
         return userRepository.getUsers();
     }
 
@@ -28,24 +28,24 @@ public class UserService {
         return userRepository.updateUser(user);
     }
 
-    public User getUserById(long id) {
+    public User getUser(long id) {
         return userRepository.getUser(id)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
     }
 
     public List<User> getFriends(long id) {
-        return userRepository.getFriends(getUserById(id));
+        return userRepository.getFriends(getUser(id));
     }
 
     public void addFriend(long id, long friendId) {
-        userRepository.addFriend(getUserById(id), getUserById(friendId));
+        userRepository.addFriend(getUser(id), getUser(friendId));
     }
 
-    public void deleteFriend(long id, long friendId) {
-        userRepository.deleteFriend(getUserById(id), getUserById(friendId));
+    public void removeFriend(long id, long friendId) {
+        userRepository.deleteFriend(getUser(id), getUser(friendId));
     }
 
-    public List<User> getMutualFriends(long id, long otherId) {
-        return userRepository.getMutualFriends(getUserById(id), getUserById(otherId));
+    public List<User> getCommonFriends(long id, long otherId) {
+        return userRepository.getMutualFriends(getUser(id), getUser(otherId));
     }
 }
