@@ -23,7 +23,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<Object> handleResourceNotFoundException(ResourceNotFoundException e, Object item) {
+    public ResponseEntity<Object> handleResourceNotFoundException(NotFoundException e, Object item) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(item);
     }
 }

@@ -1,58 +1,23 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Collection;
 
 @Service
-public class FilmService {
-    private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
+public interface FilmService {
+    Film addFilm(Film film);
 
-    @Autowired
-    public FilmService(UserStorage userStorage, FilmStorage filmStorage) {
-        this.userStorage = userStorage;
-        this.filmStorage = filmStorage;
-    }
+    Film updateFilm(Film filmNewInfo);
 
-    public Film getFilm(int id) {
-        return filmStorage.getFilm(id);
-    }
+    Film getFilmById(long id);
 
-    public List<Film> getFilms() {
-        return filmStorage.getFilms();
-    }
+    Collection<Film> getFilmsList();
 
-    public Film addFilm(Film film) {
-        return filmStorage.addFilm(film);
-    }
+    Collection<Film> findPopular(int count);
 
-    public Film updateFilm(Film film) {
-        return filmStorage.updateFilm(film);
-    }
+    void setLike(long filmId, long userId);
 
-    public void addLike(int filmId, int userId) {
-        Film film = filmStorage.getFilm(filmId);
-        User user = userStorage.getUser(userId);
-        film.getLikes().add(userId);
-    }
-
-    public void removeLike(int filmId, int userId) {
-        Film film = filmStorage.getFilm(filmId);
-        User user = userStorage.getUser(userId);
-        film.getLikes().remove(userId);
-    }
-
-    public List<Film> getTopFilms(int count) {
-        return filmStorage.getFilms().stream()
-                .sorted((f1, f2) -> Integer.compare(f2.getLikes().size(), f1.getLikes().size()))
-                .limit(count)
-                .collect(Collectors.toList());
-    }
+    void deleteLike(long filmId, long userId);
 }
