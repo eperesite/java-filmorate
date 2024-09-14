@@ -31,14 +31,12 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<User> addUser(@Valid @RequestBody User user) {
-        log.debug("Запрос на создание пользователя");
         validateService.validateUser(user);
         return new ResponseEntity<>(userService.addUser(user), HttpStatus.CREATED);
     }
 
     @PutMapping
     public ResponseEntity<User> updateUser(@Valid @RequestBody User userNewInfo) {
-        log.debug("Запрос на обновление существующего в базе пользователя");
         validateService.validateUser(userNewInfo);
         return new ResponseEntity<>(userService.updateUser(userNewInfo), HttpStatus.OK);
     }
@@ -65,7 +63,6 @@ public class UserController {
 
     @GetMapping("{id}/friends")
     public List<User> getFriends(@PathVariable long id) {
-        log.debug("Запрос на получение списка друзей");
         return userService.getFriends(id);
     }
 

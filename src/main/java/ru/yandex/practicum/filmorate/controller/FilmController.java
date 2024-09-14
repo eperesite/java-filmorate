@@ -32,7 +32,6 @@ public class FilmController {
 
     @PostMapping
     public ResponseEntity<Film> addFilm(@Valid @RequestBody Film film) {
-        log.debug("Запрос на создание фильма");
         validateService.validateFilm(film);
         return new ResponseEntity<>(filmService.addFilm(film), HttpStatus.CREATED);
     }
@@ -40,7 +39,6 @@ public class FilmController {
 
     @PutMapping
     public ResponseEntity<Film> updateFilm(@Valid @RequestBody Film filmNewInfo) {
-        log.debug("Запрос на обновление данных о фильме");
         validateService.validateFilm(filmNewInfo);
         return new ResponseEntity<>(filmService.updateFilm(filmNewInfo), HttpStatus.OK);
     }
@@ -57,13 +55,11 @@ public class FilmController {
 
     @GetMapping("{id}")
     public Film getFilmById(@PathVariable long id) {
-        log.debug("Запрос на получения фильма по айди");
         return filmService.getFilmById(id);
     }
 
     @PutMapping("{id}/like/{user-id}")
     public void setLike(@PathVariable long id, @PathVariable("user-id") long userId) {
-        log.debug("Запрос на получение  данных о лайках");
         filmService.addLike(id, userId);
     }
 
