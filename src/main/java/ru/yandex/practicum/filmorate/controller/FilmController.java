@@ -44,27 +44,27 @@ public class FilmController {
     }
 
     @GetMapping
-    public ResponseEntity<Collection<Film>> getFilmsList() {
+    public ResponseEntity<Collection<Film>> getAllFilms() {
         return new ResponseEntity<>(filmService.getFilmsList(), HttpStatus.OK);
     }
 
     @GetMapping("popular")
-    public Collection<Film> findPopular(@RequestParam(defaultValue = "10") Integer count) {
+    public Collection<Film> getTopFilms(@RequestParam(defaultValue = "10") Integer count) {
         return filmService.findPopular(count);
     }
 
     @GetMapping("{id}")
-    public Film getFilmById(@PathVariable long id) {
+    public Film getFilm(@PathVariable long id) {
         return filmService.getFilmById(id);
     }
 
     @PutMapping("{id}/like/{user-id}")
-    public void setLike(@PathVariable long id, @PathVariable("user-id") long userId) {
+    public void addLike(@PathVariable long id, @PathVariable("user-id") long userId) {
         filmService.addLike(id, userId);
     }
 
     @DeleteMapping("{id}/like/{user-id}")
-    public void deleteLink(@PathVariable long id, @PathVariable("user-id") long userId) {
+    public void removeLike(@PathVariable long id, @PathVariable("user-id") long userId) {
         filmService.removeLike(id, userId);
     }
 }

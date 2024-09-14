@@ -13,20 +13,19 @@ public class ValidateService {
 
     public void validateUser(User user) {
         if (user.getName() == null || user.getName().isBlank()) {
-            throw new ValidationException("Имя должен быть указано");
+            throw new ValidationException("Имя должно быть указано");
         }
         if (user.getEmail() == null || user.getEmail().isBlank()) {
-            throw new ValidationException("Имейл должен быть указан");
+            throw new ValidationException("Email должен быть указан");
         }
         if (!user.getEmail().contains("@")) {
-            throw new ValidationException("Некорректный имейл");
+            throw new ValidationException("Некорректный email");
         }
         if (user.getLogin() == null || user.getLogin().isBlank()) {
-
             throw new ValidationException("Логин должен быть указан");
         }
         if (user.getLogin().contains(" ")) {
-            throw new ValidationException("В логине присутсвуют неразрешенные символы (пробелы)");
+            throw new ValidationException("Логин содержит недопустимые символы (пробелы)");
         }
     }
 
@@ -35,13 +34,13 @@ public class ValidateService {
             throw new ValidationException("Название не может быть пустым");
         }
         if (film.getDescription().length() > 200) {
-            throw new ValidationException("Максимальная длина описания превышает 200 символов");
+            throw new ValidationException("Описание фильма не может превышать 200 символов");
         }
         if (film.getReleaseDate().isBefore(birthdayOfCinema)) {
-            throw new ValidationException("Некорректная дата релиза, дата релиза не может быть меньше даты 28.12.1895");
+            throw new ValidationException("Некорректная дата релиза, не может быть раньше 28.12.1895");
         }
         if (film.getDuration() < 0) {
-            throw new ValidationException("Продолжительность фильма должна быть положительным числом");
+            throw new ValidationException("Продолжительность фильма должна быть положительной");
         }
     }
 }
