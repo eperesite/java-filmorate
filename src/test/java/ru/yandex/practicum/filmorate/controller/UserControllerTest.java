@@ -1,95 +1,187 @@
 package ru.yandex.practicum.filmorate.controller;
 
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
+import ru.yandex.practicum.filmorate.controller.UserController;
+import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.User;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
-import java.time.Month;
 import java.util.List;
-import java.util.Set;
 
-import static jakarta.validation.Validation.buildDefaultValidatorFactory;
 import static org.junit.jupiter.api.Assertions.*;
 
 class UserControllerTest {
-    UserController userController;
-    User user;
 
-    ValidatorFactory factory = buildDefaultValidatorFactory();
-    Validator validator = factory.getValidator();
+    private UserController userController;
 
     @BeforeEach
-    void beforeEach() {
-        userController = new UserController();
-        user = new User(0, "petrov@yandex.ru", "Petrov99", "Petr", LocalDate.of(1999, Month.JUNE, 13));
+    void setUp() {
+        UserStorage userStorage = new InMemoryUserStorage();
+        UserService userService = new UserService(userStorage);
+        userController = new UserController(userService);
     }
 
     @Test
-    void create() {
-        User newUser = userController.create(user);
-        List<User> users = userController.getAll();
-        assertEquals(newUser, users.get(0));
+    void addUser_ValidUser_ReturnsCreatedResponse() {
+        User user = new User();
+        user.setLogin("validUser");
+        user.setEmail("user@example.com");
+        user.setName("example");
+        user.setBirthday(LocalDate.now());
+
+        ResponseEntity<User> response = userController.addUser(user);
+
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("validUser", response.getBody().getLogin());
     }
 
     @Test
-    void createWithBlankName() {
-        user.setName(" ");
-        User newUser = userController.create(user);
-        List<User> users = userController.getAll();
-        assertEquals(user.getLogin(), newUser.getName());
+    void addUser_EmptyLogin_ReturnsBadRequest() {
+        User user = new User();
+        user.setLogin("");
+        user.setEmail("user@example.com");
+        user.setName("example");
+        user.setBirthday(LocalDate.now());
+
+        ValidationException exception = assertThrows(ValidationException.class, () -> {
+            userController.addUser(user);
+        });
+
+        assertEquals("Логин не должен быть пустым и содержать пробелов.", exception.getMessage());
     }
 
     @Test
-    void createWithNullName() {
-        user.setName(null);
-        User newUser = userController.create(user);
-        List<User> users = userController.getAll();
-        assertEquals(user.getLogin(), newUser.getName());
+    void addUser_SpaceLogin_ReturnsBadRequest() {
+        User user = new User();
+        user.setLogin("1 2 3");
+        user.setEmail("user@example.com");
+        user.setName("example");
+        user.setBirthday(LocalDate.now());
+
+        ValidationException exception = assertThrows(ValidationException.class, () -> {
+            userController.addUser(user);
+        });
+
+        assertEquals("Логин не должен быть пустым и содержать пробелов.", exception.getMessage());
     }
 
     @Test
-    void update() {
-        User newUser = userController.create(user);
-        newUser.setLogin("SuperPetrov99");
-        newUser.setEmail("newemail@yandex.ru");
-        userController.update(newUser);
-        List<User> users = userController.getAll();
-        assertEquals(newUser, users.get(0));
+    void addUser_InvalidEmail_ReturnsBadRequest() {
+        User user = new User();
+        user.setLogin("User");
+        user.setBirthday(LocalDate.now());
+        user.setEmail("12345");
+
+        ValidationException exception = assertThrows(ValidationException.class, () -> {
+            userController.addUser(user);
+        });
+
+        assertEquals("Почта не должна быть пустой и должна содержать @.", exception.getMessage());
     }
 
     @Test
-    void updateWithBlankName() {
-        User newUser = userController.create(user);
-        newUser.setName(" ");
-        userController.update(newUser);
-        List<User> users = userController.getAll();
-        assertEquals(newUser.getLogin(), users.get(0).getName());
+    void addUser_EmptyEmail_ReturnsBadRequest() {
+        User user = new User();
+        user.setLogin("User");
+        user.setBirthday(LocalDate.now());
+        user.setEmail("");
+
+        ValidationException exception = assertThrows(ValidationException.class, () -> {
+            userController.addUser(user);
+        });
+
+        assertEquals("Почта не должна быть пустой и должна содержать @.", exception.getMessage());
     }
 
     @Test
-    void updateWithNullName() {
-        User newUser = userController.create(user);
-        newUser.setName(null);
-        userController.update(newUser);
-        List<User> users = userController.getAll();
-        assertEquals(newUser.getLogin(), users.get(0).getName());
+    void addUser_EmptyName_ReturnsOkResponse() {
+        User user = new User();
+        user.setLogin("User");
+        user.setEmail("user@example.com");
+        user.setBirthday(LocalDate.now());
+        userController.addUser(user);
+
+        assertEquals(user.getName(), "User");
     }
 
     @Test
-    void updateNonExistingUser() {
-        User nonExistingUser = new User(999, "nonexistent@yandex.ru", "NonExist", "NonExist", LocalDate.of(1990, Month.JANUARY, 1));
-        assertThrows(NotFoundException.class, () -> userController.update(nonExistingUser));
+    void addUser_InvalidBirthday_ReturnsBadRequest() {
+        User user = new User();
+        user.setLogin("User");
+        user.setEmail("user@example.com");
+        user.setBirthday(LocalDate.of(2030, 1, 1));
+
+        ValidationException exception = assertThrows(ValidationException.class, () -> {
+            userController.addUser(user);
+        });
+
+        assertEquals("Дата рождения не может быть в будущем.", exception.getMessage());
     }
 
     @Test
-    void shouldNotValidate() {
-        User newUser = new User(0, "petrovyandex.ru@", " ", "Petr", LocalDate.of(2100, Month.JUNE, 13));
-        Set<ConstraintViolation<User>> violations = validator.validate(newUser);
-        assertEquals(3, violations.size());
+    void updateUser_ValidUser_ReturnsOkResponse() {
+        User user = new User();
+        user.setLogin("firstUser");
+        user.setEmail("user@example.com");
+        user.setName("example");
+        user.setBirthday(LocalDate.now());
+        userController.addUser(user);
+
+        User updatedUser = new User();
+        updatedUser.setId((user.getId()));
+        updatedUser.setLogin("updatedUser");
+        updatedUser.setEmail("updated@example.com");
+        updatedUser.setName("updExample");
+        updatedUser.setBirthday(LocalDate.now());
+
+        ResponseEntity<User> response = userController.updateUser(updatedUser);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("updatedUser", response.getBody().getLogin());
+    }
+
+    @Test
+    void updateUser_NonExistentUser_ReturnsNotFound() {
+        User updatedUser = new User();
+        updatedUser.setLogin("updatedUser");
+        updatedUser.setEmail("user@example.com");
+        updatedUser.setName("example");
+        updatedUser.setBirthday(LocalDate.now());
+
+        Exception exception = assertThrows(ResourceNotFoundException.class, () -> {
+            userController.updateUser(updatedUser);
+        });
+        assertEquals("Пользователь не существует", exception.getMessage());
+    }
+
+    @Test
+    void getAllUsers_ReturnsListOfUsers() {
+        User user1 = new User();
+        user1.setLogin("user1");
+        user1.setEmail("user1@example.com");
+        user1.setName("example1");
+        user1.setBirthday(LocalDate.now());
+        userController.addUser(user1);
+
+        User user2 = new User();
+        user2.setLogin("user2");
+        user2.setEmail("user2@example.com");
+        user2.setName("example2");
+        user2.setBirthday(LocalDate.now());
+        userController.addUser(user2);
+
+        ResponseEntity<List<User>> response = userController.getAllUsers();
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
     }
 }
