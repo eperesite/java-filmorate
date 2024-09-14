@@ -1,3 +1,4 @@
+https://github.com/eperesite/java-filmorate/blob/main/Flowcharts.pdf
 1. Получить всех пользователей
 SELECT * FROM users;
 2. Получить все фильмы с их жанрами
