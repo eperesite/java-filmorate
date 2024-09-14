@@ -17,7 +17,7 @@ public interface FilmService {
 
     Collection<Film> findPopular(int count);
 
-    void setLike(long filmId, long userId);
+    void addLike(long filmId, long userId);
 
-    void deleteLike(long filmId, long userId);
+    void removeLike(long filmId, long userId);
 }

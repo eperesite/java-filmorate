@@ -78,13 +78,13 @@ public class BaseFilmService implements FilmService {
 
 
     @Override
-    public void setLike(long filmId, long userId) {
+    public void addLike(long filmId, long userId) {
         User user = userRepository.getUser(userId).orElseThrow(() -> new NotFoundException("Пользователь с " + userId + "не найден"));
         filmRepository.setLike(filmId, userId);
     }
 
     @Override
-    public void deleteLike(long filmId, long userId) {
+    public void removeLike(long filmId, long userId) {
         User user = userRepository.getUser(userId).orElseThrow(() -> new NotFoundException("Пользователь с " + userId + "не найден"));
         filmRepository.deleteLike(filmId, userId);
     }
