@@ -1,58 +1,72 @@
 package ru.yandex.practicum.filmorate.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.repository.FilmRepository;
+import ru.yandex.practicum.filmorate.repository.GenreRepository;
+import ru.yandex.practicum.filmorate.repository.RatingRepository;
+import ru.yandex.practicum.filmorate.repository.UserRepository;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class FilmService {
-    private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
-
-    @Autowired
-    public FilmService(UserStorage userStorage, FilmStorage filmStorage) {
-        this.userStorage = userStorage;
-        this.filmStorage = filmStorage;
-    }
-
-    public Film getFilm(int id) {
-        return filmStorage.getFilm(id);
-    }
-
-    public List<Film> getFilms() {
-        return filmStorage.getFilms();
-    }
+    private final FilmRepository filmRepository;
+    private final RatingRepository ratingRepository;
+    private final GenreRepository genreRepository;
+    private final UserRepository userRepository;
 
     public Film addFilm(Film film) {
-        return filmStorage.addFilm(film);
+        validateGenresAndRating(film);
+        return filmRepository.addFilm(film);
     }
 
     public Film updateFilm(Film film) {
-        return filmStorage.updateFilm(film);
+        filmRepository.getFilm(film.getId())
+                .orElseThrow(() -> new NotFoundException("Фильм не найден"));
+        return filmRepository.updateFilm(film);
     }
 
-    public void addLike(int filmId, int userId) {
-        Film film = filmStorage.getFilm(filmId);
-        User user = userStorage.getUser(userId);
-        film.getLikes().add(userId);
+    public Film getFilm(long id) {
+        return filmRepository.getFilm(id)
+                .orElseThrow(() -> new NotFoundException("Фильм не найден"));
     }
 
-    public void removeLike(int filmId, int userId) {
-        Film film = filmStorage.getFilm(filmId);
-        User user = userStorage.getUser(userId);
-        film.getLikes().remove(userId);
+    public Collection<Film> getAllFilms() {
+        return filmRepository.getFilms();
     }
 
-    public List<Film> getTopFilms(int count) {
-        return filmStorage.getFilms().stream()
-                .sorted((f1, f2) -> Integer.compare(f2.getLikes().size(), f1.getLikes().size()))
-                .limit(count)
-                .collect(Collectors.toList());
+    public Collection<Film> getTopFilms(int count) {
+        return filmRepository.findPopular(count);
+    }
+
+    public void addLike(long filmId, long userId) {
+        userRepository.getUser(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        filmRepository.setLike(filmId, userId);
+    }
+
+    public void removeLike(long filmId, long userId) {
+        userRepository.getUser(userId)
+                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        filmRepository.deleteLike(filmId, userId);
+    }
+
+    private void validateGenresAndRating(Film film) {
+        if (film.getGenres() != null) {
+            List<Long> genreIds = film.getGenres().stream().map(Genre::getId).toList();
+            Collection<Genre> genres = genreRepository.findByIds(genreIds);
+            if (genres.size() != genreIds.size()) {
+                throw new ValidationException("Некорректные жанры");
+            }
+        }
+        ratingRepository.findById(film.getMpa().getId())
+                .orElseThrow(() -> new ValidationException("Рейтинг MPA не найден"));
     }
 }
