@@ -11,7 +11,6 @@ import ru.yandex.practicum.filmorate.service.RatingService;
 
 import java.util.Collection;
 
-@Slf4j
 @RestController
 @RequestMapping("/mpa")
 @RequiredArgsConstructor

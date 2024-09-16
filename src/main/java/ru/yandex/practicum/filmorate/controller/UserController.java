@@ -20,7 +20,6 @@ import ru.yandex.practicum.filmorate.service.ValidateService;
 import java.util.Collection;
 import java.util.List;
 
-@Slf4j
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor

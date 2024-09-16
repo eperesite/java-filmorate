@@ -30,7 +30,6 @@ public class FilmService {
     public Film updateFilm(Film film) {
         filmRepository.getFilm(film.getId())
                 .orElseThrow(() -> new NotFoundException("Фильм не найден"));
-        validateGenresAndRating(film);
         return filmRepository.updateFilm(film);
     }
 
